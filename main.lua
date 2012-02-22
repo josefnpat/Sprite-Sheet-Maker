@@ -20,7 +20,7 @@ end
 
 tile_table = {}
 
-max_cycle = (input:getWidth()*input:getHeight())/10
+max_cycle = (input:getWidth()*input:getHeight())/100
 cur_cycle = 0
 perc_out = 0
 
@@ -34,7 +34,7 @@ for x = 0,(input:getWidth()/sprite_size)-1 do
         cur_cycle = cur_cycle + 1
         if cur_cycle >= max_cycle then
           cur_cycle = 0
-          perc_out = perc_out + 10
+          perc_out = perc_out + 1
           print(perc_out.."%")
         end
         r,g,b,a=input:getPixel(x*sprite_size+ix,y*sprite_size+iy)
