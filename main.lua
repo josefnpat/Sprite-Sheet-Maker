@@ -2,6 +2,7 @@ input = love.image.newImageData("input.gif")
 sprite_size = 16
 spritesheet_sprite_width = 8
 output = "output.png"
+significant_bits = 2^4 -- min 1 (2^0) max 255 (2^8-1)
 
 
 if input:getWidth()/sprite_size == math.floor(input:getWidth()/sprite_size) then
@@ -38,7 +39,10 @@ for x = 0,(input:getWidth()/sprite_size)-1 do
           print(perc_out.."%")
         end
         r,g,b,a=input:getPixel(x*sprite_size+ix,y*sprite_size+iy)
-        tile_index = tile_index.."r"..r.."g"..g.."b"..b.."a"..a.."x"
+        tile_index = tile_index.."r".. math.floor(r/significant_bits)..
+                                 "g".. math.floor(g/significant_bits)..
+                                 "b".. math.floor(b/significant_bits)..
+                                 "a".. math.floor(a/significant_bits).."x"
       end
     end
     tile = {}
