@@ -5,7 +5,12 @@ function love.load(arg)
   spritesheet_row_width = arg[5] or 8
   significant_bits = arg[6] or 2^7 -- min 1 (2^0) max 255 (2^8-1)
 
-  input = love.image.newImageData(input_filename)
+  if love.filesystem.isFile(input_filename) then
+    input = love.image.newImageData(input_filename)
+  else
+    print("Error: Input file "..input_filename.."not found.")
+    love.event.quit()
+  end
 
   tiles_wide = input:getWidth() / tile_size
   tiles_high = input:getHeight() / tile_size
