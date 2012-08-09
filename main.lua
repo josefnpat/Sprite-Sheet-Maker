@@ -38,7 +38,7 @@ function love.load(arg)
   for tile_x = 0, tiles_wide - 1 do
     for tile_y = 0, tiles_high - 1 do
 
-      tile_index = "!"
+      tile_index = ""
 
       for pixel_x = 0, tile_size - 1 do
         for pixel_y = 0, tile_size - 1 do
@@ -52,7 +52,7 @@ function love.load(arg)
           tile_index = tile_index.."r"..math.floor(r/significant_bits)..
                                    "g"..math.floor(g/significant_bits)..
                                    "b"..math.floor(b/significant_bits)..
-                                   "a"..math.floor(a/significant_bits).."x"
+                                   "a"..math.floor(a/significant_bits)
         end
       end
 
