@@ -1,89 +1,112 @@
-input = love.image.newImageData("input.gif")
-sprite_size = 16
-spritesheet_sprite_width = 8
-output = "output.png"
-significant_bits = 2^4 -- min 1 (2^0) max 255 (2^8-1)
+function love.load(arg)
+  input_filename = arg[2] or "input.gif"
+  output_filename = arg[3] or "output.png"
+  tile_size = arg[4] or 16
+  spritesheet_row_width = arg[5] or 8
+  significant_bits = arg[6] or 2^7 -- min 1 (2^0) max 255 (2^8-1)
 
+  input = love.image.newImageData(input_filename)
 
-if input:getWidth()/sprite_size == math.floor(input:getWidth()/sprite_size) then
-  print("Image is "..input:getWidth()/sprite_size.." tiles wide.")
-else
-  print("Error: Image is width not divisible by "..sprite_size)
-  love.event.push("q")
-end
+  tiles_wide = input:getWidth() / tile_size
+  tiles_high = input:getHeight() / tile_size
 
-if input:getHeight()/sprite_size == math.floor(input:getHeight()/sprite_size) then
-  print("Image is "..input:getHeight()/sprite_size.." tiles high.")
-else
-  print("Error: Image height is not divisible by "..sprite_size)
-  love.event.push("q")
-end
+  image_is_divisible_by_width = tiles_wide == math.floor(tiles_wide)
+  image_is_divisible_by_height = tiles_high == math.floor(tiles_high)
 
-tile_table = {}
+  if not image_is_divisible_by_width or not image_is_divisible_by_height then
+    if not image_is_divisible_by_width then
+      print("Error: Image width is not divisible by "..tile_size)
+    end
+    if not image_is_divisible_by_height then
+      print("Error: Image height is not divisible by "..tile_size)
+    end
+    love.event.quit()
+  else
+    print("Image is "..tiles_wide.." tiles wide.")
+    print("Image is "..tiles_high.." tiles high.")
+  end
 
-max_cycle = (input:getWidth()*input:getHeight())/100
-cur_cycle = 0
-perc_out = 0
+  tile_table = {}
 
-print("Building Hash Table")
-print("0%")
-for x = 0,(input:getWidth()/sprite_size)-1 do
-  for y = 0,(input:getHeight()/sprite_size)-1 do
-    local tile_index = "!"
-    for ix = 0,sprite_size-1 do
-      for iy = 0,sprite_size-1 do
-        cur_cycle = cur_cycle + 1
-        if cur_cycle >= max_cycle then
-          cur_cycle = 0
-          perc_out = perc_out + 1
-          print(perc_out.."%")
+  cycles_per_one_percent = input:getWidth() * input:getHeight() / 100
+  current_cycle = 0
+  percentage_complete = 0
+
+  print("Building hash table...")
+  io.write("0%")
+
+  for tile_x = 0, tiles_wide - 1 do
+    for tile_y = 0, tiles_high - 1 do
+
+      tile_index = "!"
+
+      for pixel_x = 0, tile_size - 1 do
+        for pixel_y = 0, tile_size - 1 do
+          current_cycle = current_cycle + 1
+          if current_cycle >= cycles_per_one_percent then
+            current_cycle = 0
+            percentage_complete = percentage_complete + 1
+            io.write("\r"..percentage_complete.."%")
+          end
+          r, g, b, a = input:getPixel(tile_x * tile_size + pixel_x, tile_y * tile_size + pixel_y)
+          tile_index = tile_index.."r"..math.floor(r/significant_bits)..
+                                   "g"..math.floor(g/significant_bits)..
+                                   "b"..math.floor(b/significant_bits)..
+                                   "a"..math.floor(a/significant_bits).."x"
         end
-        r,g,b,a=input:getPixel(x*sprite_size+ix,y*sprite_size+iy)
-        tile_index = tile_index.."r".. math.floor(r/significant_bits)..
-                                 "g".. math.floor(g/significant_bits)..
-                                 "b".. math.floor(b/significant_bits)..
-                                 "a".. math.floor(a/significant_bits).."x"
       end
+
+      tile_table[tile_index] = {x = tile_x, y = tile_y}
     end
-    tile = {}
-    tile.x,tile.y = x,y
-    if not tile_table[tile_index] then
-      tile_table[tile_index] = tile
+  end
+
+  print("\r100%")
+
+  unique_tiles = 0
+  for _, _ in pairs(tile_table) do
+    unique_tiles = unique_tiles + 1
+  end
+
+  print("Unique tiles: "..unique_tiles)
+
+  spritesheet_column_height = math.ceil(unique_tiles / spritesheet_row_width)
+
+  print("Creating spritesheet: "..spritesheet_row_width.."x"..spritesheet_column_height..
+        " ("..spritesheet_row_width * tile_size.."x"..spritesheet_column_height * tile_size..")")
+
+  spritesheet = love.image.newImageData(spritesheet_row_width * tile_size, spritesheet_column_height * tile_size)
+  spritesheet_row = 0
+  spritesheet_column = 0
+
+  for _, tile in pairs(tile_table) do
+    spritesheet:paste(input,
+    spritesheet_row * tile_size, spritesheet_column * tile_size,
+    tile.x * tile_size, tile.y * tile_size,
+    tile_size, tile_size)
+
+    spritesheet_row = spritesheet_row + 1
+    if spritesheet_row == spritesheet_row_width then
+      spritesheet_row = 0
+      spritesheet_column = spritesheet_column + 1
     end
+  end
+
+  s = spritesheet
+  s:encode(output_filename)
+
+  print("Done!")
+
+  image = love.graphics.newImage(spritesheet)
+  love.graphics.setMode(image:getWidth(), image:getHeight())
+end
+
+function love.draw()
+  love.graphics.draw(image, 0, 0)
+end
+
+function love.keypressed(key)
+  if key == 'escape' then
+    love.event.quit()
   end
 end
 
-print("100%")
-
-local c = 0
-for i,v in pairs(tile_table) do
-  c = c + 1
-end
-print("Unique tiles: "..c)
-
-spritesheet_sprite_height = math.ceil(c / spritesheet_sprite_width)
-print("Creating Spritesheet: "..spritesheet_sprite_width.."x"..spritesheet_sprite_height.." ("..spritesheet_sprite_width*sprite_size.."x"..spritesheet_sprite_height*sprite_size..")")
-spritesheet = love.image.newImageData(spritesheet_sprite_width * sprite_size,spritesheet_sprite_height * sprite_size)
-
-dx_tile,dy_tile = 0,0
-
-table.sort(tile_table)
-
-for _,v in pairs(tile_table) do
-  --print("v.x & v.y",v.x*sprite_size,v.y*sprite_size,"=>","dx&dy",dx_tile*sprite_size,dy_tile*sprite_size)
-  --print("v.x & v.y",v.x,v.y,"=>","dx&dy",dx_tile,dy_tile)
-  spritesheet:paste(input,
-                    dx_tile*sprite_size,dy_tile*sprite_size,
-                    v.x*sprite_size,v.y*sprite_size,
-                    sprite_size,sprite_size)
-  dx_tile = dx_tile + 1
-  if dx_tile >= spritesheet_sprite_width then
-    dx_tile = 0
-    dy_tile = dy_tile + 1
-  end
-end
-
-local s = spritesheet
-s:encode(output)
-
-love.event.quit()
