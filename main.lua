@@ -8,7 +8,7 @@ function love.load(arg)
   if love.filesystem.isFile(input_filename) then
     input = love.image.newImageData(input_filename)
   else
-    print("Error: Input file "..input_filename.."not found.")
+    print("Error: Input file "..input_filename.." not found.")
     love.event.quit()
   end
 
