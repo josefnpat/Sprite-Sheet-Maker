@@ -3,7 +3,7 @@ function love.load(arg)
   output_filename = arg[3] or "output.png"
   tile_size = arg[4] or 16
   spritesheet_row_width = arg[5] or 8
-  significant_bits = arg[6] or 2^7 -- min 1 (2^0) max 255 (2^8-1)
+  significant_bits = math.max(math.min(1, 2^(arg[6] or 7)), 255) -- min 1 (2^0) max 255 (2^8-1)
 
   if love.filesystem.isFile(input_filename) then
     input = love.image.newImageData(input_filename)
