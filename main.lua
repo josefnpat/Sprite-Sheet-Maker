@@ -3,7 +3,7 @@ function love.load(arg)
   output_filename = arg[3] or "output.png"
   tile_size = arg[4] or 16
   spritesheet_row_width = arg[5] or 8
-  significant_bits = math.max(math.min(1, 2^(arg[6] or 7)), 255) -- min 1 (2^0) max 255 (2^8-1)
+  significant_bits = math.min(math.max(1, 2^(arg[6] or 7)), 255) -- min 1 (2^0) max 255 (2^8-1)
 
   if love.filesystem.isFile(input_filename) then
     input = love.image.newImageData(input_filename)
@@ -34,10 +34,10 @@ function love.load(arg)
   tile_table = {}
 
   cycles_per_one_percent = input:getWidth() * input:getHeight() / 100
-  current_cycle = 0
+  cycle_counter = 0
   percentage_complete = 0
 
-  print("Building hash table...")
+  print("Building tile table...")
   io.write("0%")
 
   for tile_x = 0, tiles_wide - 1 do
@@ -47,9 +47,9 @@ function love.load(arg)
 
       for pixel_x = 0, tile_size - 1 do
         for pixel_y = 0, tile_size - 1 do
-          current_cycle = current_cycle + 1
-          if current_cycle >= cycles_per_one_percent then
-            current_cycle = 0
+          cycle_counter = cycle_counter + 1
+          if cycle_counter >= cycles_per_one_percent then
+            cycle_counter = 0
             percentage_complete = percentage_complete + 1
             io.write("\r"..percentage_complete.."%")
           end
@@ -96,8 +96,7 @@ function love.load(arg)
     end
   end
 
-  s = spritesheet
-  s:encode(output_filename)
+  spritesheet:encode(output_filename)
 
   print("Done!")
 
