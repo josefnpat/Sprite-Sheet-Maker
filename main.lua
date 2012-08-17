@@ -3,7 +3,7 @@ function love.load(arg)
   output_filename = arg[3] or "output.png"
   tile_size = arg[4] or 16
   spritesheet_row_width = arg[5] or 8
-  significant_bits = math.min(math.max(1, 2^(arg[6] or 7)), 255) -- min 1 (2^0) max 255 (2^8-1)
+  pixel_value_reduction_factor = math.min(math.max(1, 2^(arg[6] or 7)), 255) -- min 1 (2^0) max 255 (2^8-1)
 
   if love.filesystem.isFile(input_filename) then
     input = love.image.newImageData(input_filename)
@@ -54,10 +54,10 @@ function love.load(arg)
             io.write("\r"..percentage_complete.."%")
           end
           r, g, b, a = input:getPixel(tile_x * tile_size + pixel_x, tile_y * tile_size + pixel_y)
-          tile_index = tile_index.."r"..math.floor(r/significant_bits)..
-                                   "g"..math.floor(g/significant_bits)..
-                                   "b"..math.floor(b/significant_bits)..
-                                   "a"..math.floor(a/significant_bits)
+          tile_index = tile_index.."r"..math.floor(r/pixel_value_reduction_factor)..
+                                   "g"..math.floor(g/pixel_value_reduction_factor)..
+                                   "b"..math.floor(b/pixel_value_reduction_factor)..
+                                   "a"..math.floor(a/pixel_value_reduction_factor)
         end
       end
 
