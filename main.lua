@@ -10,6 +10,7 @@ function love.load(arg)
   else
     print("Error: Input file "..input_filename.." not found.")
     love.event.quit()
+    return
   end
 
   tiles_wide = input:getWidth() / tile_size
@@ -26,6 +27,7 @@ function love.load(arg)
       print("Error: Image height is not divisible by "..tile_size)
     end
     love.event.quit()
+    return
   else
     print("Image is "..tiles_wide.." tiles wide.")
     print("Image is "..tiles_high.." tiles high.")
